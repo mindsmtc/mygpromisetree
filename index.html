@@ -16,7 +16,7 @@ body{ background: linear-gradient(180deg, #d0eaff 0%, #ede9fc 100%); font-family
 .header-box h1 { color: var(--text-dark); font-size: 2.2rem; margin-bottom: 5px; }
 .header-box p { color: var(--purple); font-weight: 700; font-size: 0.9rem; letter-spacing: 1px; text-transform: uppercase; }
 
-.instruction-text { max-width: 600px; text-align: center; color: var(--text-dark); margin: 15px 0; line-height: 1.6; font-size: 1.1rem; font-weight: 500; }
+.instruction-text { max-width: 600px; text-align: center; color: var(--text-dark); margin: 10px 0; line-height: 1.6; font-size: 1.1rem; font-weight: 500; }
 
 .counter-pill{ font-size:13px; background: white; border:1px solid #a99de0; border-radius:999px; padding:8px 25px; cursor: pointer; margin-top: 5px; display: inline-block; position: relative; z-index: 100;}
 .admin-active { border-color: #ff4757; color: #ff4757; font-weight: bold; }
@@ -156,7 +156,7 @@ function renderLeaf(d) {
 async function saveLeaf(type, path = null, color = '#5da161') {
     // 1. The visual center of your enlarged branch canopy
     const centerX = 550; 
-    const centerY = 450;
+    const centerY = 480;
     
     // 2. The spread - 450 allows leaves to reach the outer twigs 
     // while staying within the 1000x1000 SVG bounds

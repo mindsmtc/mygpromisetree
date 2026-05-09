@@ -156,11 +156,11 @@ function renderLeaf(d) {
 async function saveLeaf(type, path = null, color = '#5da161') {
     // 1. The visual center of your enlarged branch canopy
     const centerX = 1250; 
-    const centerY = 1250;
+    const centerY = 1350;
     
     // 2. The spread - 450 allows leaves to reach the outer twigs 
     // while staying within the 1000x1000 SVG bounds
-    const maxRadius = 1000;
+    const maxRadius = 850;
 
     // 3. Circular distribution math
     const angle = Math.random() * Math.PI * 2;

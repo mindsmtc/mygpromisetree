@@ -29,7 +29,14 @@ body{ background: linear-gradient(180deg, #d0eaff 0%, #ede9fc 100%); font-family
 .leaf-btn { width: 55px; height: 55px; cursor: pointer; border: 2px solid transparent; border-radius: 12px; padding: 6px; background: var(--purple-light); transition: 0.2s; }
 .leaf-btn:hover { border-color: var(--purple); transform: scale(1.1); }
 
-#leafCanvas { border: 1px dashed #ccc; border-radius: 8px; background: #fafafa; cursor: crosshair; }
+#leafCanvas {
+    border: 1px dashed #ccc;
+    border-radius: 8px;
+    background: #fafafa;
+    cursor: crosshair;
+    /* This prevents the screen from moving when you draw */
+    touch-action: none; 
+}
 
 input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 15px; background: #fdfdff; }
 input:focus, textarea:focus { border-color: var(--purple); outline: none; }
@@ -125,12 +132,49 @@ document.getElementById('adminTrigger').onclick = () => {
 const canvas = document.getElementById('leafCanvas');
 const ctx = canvas.getContext('2d');
 let drawing = false;
-canvas.onmousedown = () => drawing = true;
-canvas.onmouseup = () => drawing = false;
-canvas.onmousemove = (e) => {
-    if(!drawing) return;
-    ctx.fillStyle = "#4caf50"; ctx.beginPath(); ctx.arc(e.offsetX, e.offsetY, 3, 0, Math.PI*2); ctx.fill();
+
+// Universal function to get coordinates
+function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+        x: clientX - rect.left,
+        y: clientY - rect.top
+    };
+}
+
+const startDrawing = (e) => { 
+    drawing = true; 
+    draw(e); 
 };
+const stopDrawing = () => { drawing = false; ctx.beginPath(); };
+
+const draw = (e) => {
+    if (!drawing) return;
+    e.preventDefault(); // Extra safety to stop scrolling
+    const pos = getPos(e);
+    
+    ctx.lineWidth = 5;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = "#4caf50";
+
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+};
+
+// Mouse Listeners
+canvas.addEventListener('mousedown', startDrawing);
+canvas.addEventListener('mousemove', draw);
+canvas.addEventListener('mouseup', stopDrawing);
+
+// Touch Listeners (Mobile)
+canvas.addEventListener('touchstart', startDrawing);
+canvas.addEventListener('touchmove', draw);
+canvas.addEventListener('touchend', stopDrawing);
+
 
 function renderLeaf(d) {
     const g = document.getElementById('leavesGroup');

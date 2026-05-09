@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MINDS MYG — A Promise Kept, Every Weekend, Since 1972</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+@font-face { font-family: 'Geomanist'; src: url('Geomanist-Regular.otf'); }
+*{box-sizing:border-box; margin:0; padding:0;}
+:root{ --purple:#7b6fc4; --purple-light:#ede9fc; --text-dark:#1a1040; --font:'Nunito', sans-serif; }
+
+body{ background: linear-gradient(180deg, #d0eaff 0%, #ede9fc 100%); font-family: var(--font); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; }
+
+.header-box { text-align: center; margin-bottom: 10px; }
+.header-box h1 { color: var(--text-dark); font-size: 2.2rem; margin-bottom: 5px; }
+.header-box p { color: var(--purple); font-weight: 700; font-size: 0.9rem; letter-spacing: 1px; text-transform: uppercase; }
+
+.instruction-text { max-width: 600px; text-align: center; color: var(--text-dark); margin: 15px 0; line-height: 1.6; font-size: 1.1rem; font-weight: 500; }
+
+.counter-pill{ font-size:13px; background: white; border:1px solid #a99de0; border-radius:999px; padding:8px 25px; cursor: pointer; margin-top: 5px; display: inline-block; position: relative; z-index: 100;}
+.admin-active { border-color: #ff4757; color: #ff4757; font-weight: bold; }
+
+.tree-container { width: 100%; max-width: 800px; height: 450px; margin: -20px 0 10px; pointer-events: none; position: relative; z-index: 1; }
+#treeSvg { width: 100%; height: 100%; overflow: visible; }
+
+.card { background: white; border-radius: 16px; padding: 1.2rem; width: 100%; max-width: 600px; margin-bottom: 1rem; border: 1px solid #a99de0; box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: relative; z-index: 50; }
+
+.leaf-btn { width: 55px; height: 55px; cursor: pointer; border: 2px solid transparent; border-radius: 12px; padding: 6px; background: var(--purple-light); transition: 0.2s; }
+.leaf-btn:hover { border-color: var(--purple); transform: scale(1.1); }
+
+#leafCanvas { border: 1px dashed #ccc; border-radius: 8px; background: #fafafa; cursor: crosshair; }
+
+input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: 15px; background: #fdfdff; }
+input:focus, textarea:focus { border-color: var(--purple); outline: none; }
+
+.btn-heart { background: none; border: none; cursor: pointer; font-size: 45px; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: block; margin: 0 auto; line-height: 1; }
+.btn-heart:hover { transform: scale(1.2); }
+
+.btn-danger { background: #ff4757; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; display: none; margin-bottom: 15px; width: 100%; max-width: 600px; font-weight: bold; position: relative; z-index: 60; }
+
+.names-grid { width: 100%; max-width: 800px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; padding: 20px 0 50px; position: relative; z-index: 100; }
+.name-chip { background: white; padding: 8px 16px; border-radius: 20px; border: 1px solid #a99de0; font-size: 14px; display: flex; align-items: center; gap: 8px; cursor: help; position: relative; }
+
+.tooltip {
+    visibility: hidden; width: 220px; background-color: var(--text-dark); color: #fff; text-align: center;
+    border-radius: 8px; padding: 12px; position: absolute; z-index: 200; bottom: 130%; left: 50%;
+    transform: translateX(-50%); opacity: 0; transition: opacity 0.3s; font-size: 13px; pointer-events: none;
+}
+.name-chip:hover .tooltip { visibility: visible; opacity: 1; }
+.del-check { display: none; width: 18px; height: 18px; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<div class="header-box">
+    <h1>MINDS MYG</h1>
+    <p>A Promise Kept, Every Weekend, Since 1972</p>
+    <div class="counter-pill" id="adminTrigger"><strong><span id="cnt">0</span></strong> / 5555 Promises Kept</div>
+</div>
+
+<div class="instruction-text">
+    Every leaf on this tree represents a dedication. 
+    <br><strong>Write your name and a message below to add yours!</strong>
+</div>
+
+<button id="bulkDeleteBtn" class="btn-danger" onclick="deleteSelected()">DELETE SELECTED (0)</button>
+
+<div class="tree-container">
+    <svg id="treeSvg" viewBox="0 0 1000 1000">
+        <image href="—Pngtree—branches forked bare tree clip_5903318.png" x="-200" y="-180" width="1500" height="1250" style="pointer-events: none;"/>
+        <g id="leavesGroup"></g>
+    </svg>
+</div>
+
+<div class="card">
+    <p style="font-size: 11px; font-weight: bold; color: var(--purple); margin-bottom: 10px;">ADD A LEAF</p>
+    <div style="display:flex; gap:15px; flex-wrap: wrap; margin-bottom:15px;">
+        <!-- Original Leaf 1 -->
+        <svg class="leaf-btn" onclick="saveLeaf('icon', 'M15,5 Q30,0 45,5 Q40,25 15,35 Q-10,25 15,5', '#5da161')" viewBox="0 0 50 50"><path d="M15,5 Q30,0 45,5 Q40,25 15,35 Q-10,25 15,5" fill="#5da161"/></svg>
+        
+        <!-- Original Leaf 2 -->
+        <svg class="leaf-btn" onclick="saveLeaf('icon', 'M25,5 Q45,15 45,35 Q25,45 5,35 Q5,15 25,5', '#81c784')" viewBox="0 0 50 50"><path d="M25,5 Q45,15 45,35 Q25,45 5,35 Q5,15 25,5" fill="#81c784"/></svg>
+        
+        <!-- NEW: Dark Forest Leaf (Pointy) -->
+        <svg class="leaf-btn" onclick="saveLeaf('icon', 'M25,2 L35,15 Q50,35 25,48 Q0,35 15,15 Z', '#2e7d32')" viewBox="0 0 50 50"><path d="M25,2 L35,15 Q50,35 25,48 Q0,35 15,15 Z" fill="#2e7d32"/></svg>
+        
+        <!-- NEW: Bright Willow Leaf (Long) -->
+        <svg class="leaf-btn" onclick="saveLeaf('icon', 'M10,25 Q25,10 40,25 Q25,40 10,25', '#aed581')" viewBox="0 0 50 50"><path d="M10,25 Q25,10 40,25 Q25,40 10,25" fill="#aed581"/></svg>
+    </div>
+    
+    <div style="display:flex; gap:15px; align-items:center;">
+        <canvas id="leafCanvas" width="60" height="60"></canvas>
+        <button onclick="saveLeaf('drawing')" style="background: #5da161; color: white; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">Paste My Drawing</button>
+    </div>
+</div>
+
+<div class="card">
+    <p style="font-size: 11px; font-weight: bold; color: var(--purple); margin-bottom: 10px;">SHARE YOUR MESSAGE</p>
+    <input type="text" id="nameIn" placeholder="Name"/>
+    <textarea id="msgIn" placeholder="Write your promise or a message of support"></textarea>
+    <button onclick="postMessage()" class="btn-heart">💜</button>
+    <p id="statusMsg" style="text-align:center; font-size:12px; color: #5da161; display:none; margin-top:5px;">Thank you for being part of our MINDS MYG journey!</p>
+</div>
+
+<div class="names-grid" id="namesList"></div>
+
+<script>
+const SUPABASE_URL = "https://hepvhflgusrnkobskblk.supabase.co";
+const SUPABASE_KEY = "sb_publishable_IvrQE_DUQ8tphnc3TS5avg_Psv0f_02"; 
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let isAdmin = false;
+let selectedIds = [];
+
+document.getElementById('adminTrigger').onclick = () => {
+    if(prompt("Admin Password:") === "11Jalanubi!") {
+        isAdmin = true;
+        document.getElementById('adminTrigger').classList.add('admin-active');
+        document.getElementById('bulkDeleteBtn').style.display = "block";
+        document.querySelectorAll('.del-check').forEach(cb => cb.style.display = "block");
+    }
+};
+
+const canvas = document.getElementById('leafCanvas');
+const ctx = canvas.getContext('2d');
+let drawing = false;
+canvas.onmousedown = () => drawing = true;
+canvas.onmouseup = () => drawing = false;
+canvas.onmousemove = (e) => {
+    if(!drawing) return;
+    ctx.fillStyle = "#4caf50"; ctx.beginPath(); ctx.arc(e.offsetX, e.offsetY, 3, 0, Math.PI*2); ctx.fill();
+};
+
+function renderLeaf(d) {
+    const g = document.getElementById('leavesGroup');
+    const rot = Math.random() * 360;
+    
+    if(d.type === 'icon') {
+        const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        p.setAttribute("d", d.path_data); 
+        p.setAttribute("fill", d.color);
+        // We use scale(0.6) so the new shapes don't look giant compared to the tree
+        p.setAttribute("transform", `translate(${d.x},${d.y}) rotate(${rot}) scale(0.6)`);
+        g.appendChild(p);
+    } else {
+        const img = document.createElementNS("http://www.w3.org/2000/svg", "image");
+        img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', d.path_data);
+        img.setAttribute("width", "50"); 
+        img.setAttribute("height", "50"); 
+        img.setAttribute("transform", `translate(${d.x},${d.y}) rotate(${rot})`);
+        g.appendChild(img);
+    }
+}
+
+async function saveLeaf(type, path = null, color = '#5da161') {
+    // UPDATED FOR YOUR NEW TREE SCALE:
+    // x: 100 to 800 (shifted left to match the x="-200" image offset)
+    // y: 50 to 650 (moved up to hit the higher branches)
+    const x = 150 + Math.random() * 400; 
+    const y = 50 + Math.random() * 300; 
+    
+    const path_data = (type === 'drawing') ? canvas.toDataURL() : path;
+
+    const { data, error } = await _supabase.from('decorations')
+        .insert([{ type, path_data, x, y, color }])
+        .select();
+
+    if(data) { 
+        renderLeaf(data[0]); 
+        if(type==='drawing') ctx.clearRect(0,0,60,60); 
+    } else {
+        alert("Leaf save failed. Ensure RLS is disabled in Supabase.");
+    }
+}
+
+async function deleteSelected() {
+    if(!selectedIds.length || !confirm("Delete selected?")) return;
+    const { error } = await _supabase.from('pledges').delete().in('id', selectedIds);
+    if(error) alert("Error: " + error.message);
+    else location.reload();
+}
+
+function updateSelect(id, checked) {
+    if(checked) selectedIds.push(id);
+    else selectedIds = selectedIds.filter(i => i !== id);
+    document.getElementById('bulkDeleteBtn').innerText = `DELETE SELECTED (${selectedIds.length})`;
+}
+
+function addChip(p) {
+    const div = document.createElement('div');
+    div.className = 'name-chip'; div.id = `chip-${p.id}`;
+    div.innerHTML = `
+        <input type="checkbox" class="del-check" onchange="updateSelect(${p.id}, this.checked)" style="${isAdmin?'display:block':''}">
+        <strong>${p.name}</strong>
+        <div class="tooltip">${p.message || "A promise kept."}</div>
+    `;
+    document.getElementById('namesList').prepend(div);
+}
+
+async function postMessage() {
+    const name = document.getElementById('nameIn').value;
+    const message = document.getElementById('msgIn').value;
+    if(!name) return alert("Name required!");
+    
+    const { data, error } = await _supabase.from('pledges').insert([{ name, message }]).select();
+    if(data) { 
+        addChip(data[0]); 
+        document.getElementById('cnt').innerText = parseInt(document.getElementById('cnt').innerText) + 1;
+        document.getElementById('nameIn').value = ""; 
+        document.getElementById('msgIn').value = "";
+        document.getElementById('statusMsg').style.display = "block";
+        setTimeout(() => document.getElementById('statusMsg').style.display = "none", 3000);
+    } else {
+        alert("Post failed. Ensure 'pledges' table has RLS disabled in Supabase.");
+    }
+}
+
+async function init() {
+    const { data: decs } = await _supabase.from('decorations').select('*');
+    if(decs) decs.forEach(renderLeaf);
+    const { data: p } = await _supabase.from('pledges').select('*');
+    if(p) { 
+        document.getElementById('cnt').innerText = p.length; 
+        p.sort((a,b) => a.id - b.id).forEach(addChip); 
+    }
+}
+init();
+</script>
+</body>
+</html>
